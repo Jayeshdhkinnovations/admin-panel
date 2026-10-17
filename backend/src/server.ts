@@ -1,0 +1,1 @@
+import 'dotenv/config'; import { createApp } from './app.js'; const port=Number(process.env.MONITOR_BACKEND_PORT??4015); const server=createApp().listen(port,()=>console.log(`Monitoring API listening on :${port}`)); process.on('SIGTERM',()=>server.close(()=>process.exit(0)));

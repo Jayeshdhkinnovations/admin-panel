@@ -1,0 +1,13 @@
+/**
+ * Optional, reviewable meeting-side integration. Import this only from the
+ * existing /meet/:roomId and /meet-direct/:roomId clients after authorization.
+ * It observes existing RTCPeerConnections; it never acquires media or records it.
+ */
+export type PublisherOptions={endpoint:string;token:string;meetingId:string;participantId:string;displayName?:string;intervalMs?:number;getPeerConnections:()=>RTCPeerConnection[];onError?:(error:unknown)=>void};
+type Previous=Map<string,{bytes:number;at:number}>;
+const resolution=(stats:RTCStatsReport,type:'outbound-rtp'|'inbound-rtp')=>{let selected:any;stats.forEach((s:any)=>{if(s.type===type&&s.kind==='video')selected=s});return selected};
+export function startTelemetryPublisher(o:PublisherOptions){const previous:Previous=new Map();const interval=o.intervalMs??3000;async function collect(){const pcs=o.getPeerConnections();let rtt:number|undefined,loss=0,up=0,down=0,send:any,receive:any;for(const pc of pcs){const stats=await pc.getStats();send=resolution(stats,'outbound-rtp')??send;receive=resolution(stats,'inbound-rtp')??receive;stats.forEach((s:any)=>{if(s.type==='candidate-pair'&&s.state==='succeeded')rtt=s.currentRoundTripTime?Math.round(s.currentRoundTripTime*1000):rtt;if(s.type==='outbound-rtp'&&s.kind==='video')up+=rate(s,'out',previous);if(s.type==='inbound-rtp'&&s.kind==='video'){down+=rate(s,'in',previous);loss+=Number(s.packetsLost??0)}})}
+ const payload={meetingId:o.meetingId,participantId:o.participantId,displayName:o.displayName,connectionState:'connected',network:{rttMs:rtt,packetLossPct:loss,uploadBitrateKbps:up,downloadBitrateKbps:down},video:{sendWidth:send?.frameWidth,sendHeight:send?.frameHeight,sendFps:send?.framesPerSecond,receiveWidth:receive?.frameWidth,receiveHeight:receive?.frameHeight,receiveFps:receive?.framesPerSecond,codec:send?.codecId}};
+ const response=await fetch(o.endpoint,{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${o.token}`},body:JSON.stringify(payload),keepalive:true});if(!response.ok)throw new Error(`Telemetry endpoint rejected the payload (${response.status})`);}
+ const report=(error:unknown)=>{if(o.onError)o.onError(error);else console.warn('[Toowix monitoring] telemetry publish failed',error)};const id=setInterval(()=>void collect().catch(report),interval);void collect().catch(report);return()=>clearInterval(id)}
+function rate(s:any,key:string,old:Previous){const now=performance.now(),id=`${key}:${s.id}`,last=old.get(id),bytes=Number(s.bytesSent??s.bytesReceived??0);old.set(id,{bytes,at:now});return !last||bytes<last.bytes?0:Math.round((bytes-last.bytes)*8/(now-last.at));}
