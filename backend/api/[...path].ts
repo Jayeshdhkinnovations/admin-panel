@@ -12,7 +12,7 @@ function quality(t:Telemetry){const n=t.network;if(!n)return {quality:'Unknown' 
 function token(req:VercelRequest){return req.headers.authorization?.replace(/^Bearer\s+/i,'')}
 function authorized(req:VercelRequest,expected:string|undefined){return Boolean(expected&&token(req)===expected)}
 function setCors(req:VercelRequest,res:VercelResponse){const origin=req.headers.origin;const allowed=(process.env.CORS_ORIGIN??'').split(',').map(x=>x.trim()).filter(Boolean);if(origin&&allowed.includes(origin)){res.setHeader('Access-Control-Allow-Origin',origin);res.setHeader('Vary','Origin')}res.setHeader('Access-Control-Allow-Headers','Authorization, Content-Type');res.setHeader('Access-Control-Allow-Methods','GET, POST, OPTIONS');res.setHeader('Cache-Control','no-store, max-age=0')}
-function readPath(req:VercelRequest){const fromUrl=req.url?new URL(req.url,'https://function.local').pathname.replace(/^\/+/, '').replace(/^api\//,''):'';if(fromUrl)return fromUrl;const value=req.query.path;return Array.isArray(value)?value.join('/'):typeof value==='string'?value:''}
+function readPath(req:VercelRequest){const value=req.query.path;const rewritten=Array.isArray(value)?value.join('/'):typeof value==='string'?value:'';if(rewritten)return rewritten;return req.url?new URL(req.url,'https://function.local').pathname.replace(/^\/+/, '').replace(/^api\//,''):''}
 // Upstash automatically JSON-deserializes HGET/HGETALL values. Accept that
 // object form as well as strings so telemetry written by Redis is not dropped
 // while building the live meeting list.
