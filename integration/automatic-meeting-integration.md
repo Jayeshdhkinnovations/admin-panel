@@ -25,6 +25,10 @@ rg -n "new JitsiConference|JitsiMeetJS|createLocalTracks|getStats|onConferenceJo
 
 Copy `integration/telemetryPublisher.ts` into the Toowix source tree, for example `src/lib/monitoring/telemetryPublisher.ts`.
 
+The current publisher includes browser/OS, audio counters, jitter, ICE state,
+camera/screen-track state, video codec and frame counters. Deploy this updated
+file to Toowix; older publisher copies cannot populate those dashboard fields.
+
 In the file which creates or joins the Jitsi conference, start the publisher **after the conference is joined and the existing peer connection is available**:
 
 ```ts
@@ -50,6 +54,13 @@ Install this in **both** routes, without merging or changing their media handlin
 - `/meet-direct/:roomId`
 
 `existingPeerConnections` must be the exact `RTCPeerConnection` already managed by the Jitsi integration. Do not create a new one. Its exact accessor differs by Toowix implementation, so provide the Toowix source project to wire it safely.
+
+For the sender-to-viewer video matrix, pass `resolveSenderParticipantId` from
+the Toowix/Jitsi participant mapping. WebRTC statistics expose an inbound
+stream, but do not expose the application participant ID by themselves.
+
+JVB bridge load and private server transport metrics cannot be read from a
+meeting browser. They need an authorized Jitsi server metrics integration.
 
 ## Configuration in the Toowix frontend
 
