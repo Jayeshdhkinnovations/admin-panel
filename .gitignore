@@ -2,8 +2,14 @@ node_modules/
 dist/
 coverage/
 .env
+.env.production
+.env.development
 .env.local
 .env.*.local
+**/.env
+**/.env.production
+**/.env.development
+**/.env.local
 *.log
 *.tsbuildinfo
 .vite/
