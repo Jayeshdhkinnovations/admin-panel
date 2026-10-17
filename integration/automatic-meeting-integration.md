@@ -2,7 +2,7 @@
 
 ## Result
 
-Once this integration is installed, every Toowix meeting gets a dedicated dashboard entry automatically. The first participating browser sends telemetry after joining; the monitoring backend creates the room from its trusted `meetingId`, and the dashboard refreshes the meeting list every 10 seconds. No dashboard-side room creation is required.
+Once this integration is installed, every Toowix meeting gets a dedicated dashboard entry automatically. The first participating browser sends telemetry after joining; the monitoring backend creates the room from its trusted `meetingId`, and the dashboard refreshes the meeting list automatically. No dashboard-side room creation is required.
 
 ## Prerequisites
 

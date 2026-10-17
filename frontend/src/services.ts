@@ -1,3 +1,3 @@
 import type { Participant } from './types'; const base=import.meta.env.VITE_MONITOR_API_URL??'http://localhost:4015';
 export async function api<T>(path:string,token:string):Promise<T>{const r=await fetch(base+path,{headers:{Authorization:`Bearer ${token}`}});if(!r.ok)throw Error((await r.json().catch(()=>({}))).error??`Request failed (${r.status})`);return r.json()}
-export function stream(token:string,onData:(p:Participant)=>void,onError:()=>void){const e=new EventSource(`${base}/api/stream?access_token=${encodeURIComponent(token)}`);e.addEventListener('telemetry',(x)=>onData(JSON.parse((x as MessageEvent).data).participant));e.onerror=onError;return()=>e.close()}
+export function stream(_token:string,_onData:(p:Participant)=>void,_onError:()=>void){return()=>{}}
